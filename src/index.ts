@@ -1,16 +1,16 @@
 // src/index.ts
-import express, { Request, Response } from "express";
+import express, { type Request, type Response } from "express";
 
 const app = express();
 // Middleware para que Express entienda JSON
 app.use(express.json());
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8000;
 
 // --- 1. VERIFICACIÓN DEL WEBHOOK (GET) ---
 app.get("/api/whatsapp", (req: Request, res: Response) => {
   // Este es el token secreto que inventarás y pondrás en Meta
-  const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || "MI_TOKEN_SECRETO";
+  const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || "qwerasd13";
 
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
