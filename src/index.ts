@@ -1,17 +1,17 @@
 // src/index.ts
 import express, { type Request, type Response } from "express";
+import * as dotenv from "dotenv";
+
+dotenv.config(); // Cargar las variables de .env
 
 const app = express();
-// Middleware para que Express entienda JSON
 app.use(express.json());
 
 const PORT = process.env.PORT || 8000;
+const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN;
 
 // --- 1. VERIFICACIÓN DEL WEBHOOK (GET) ---
 app.get("/api/whatsapp", (req: Request, res: Response) => {
-  // Este es el token secreto que inventarás y pondrás en Meta
-  const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || "qwerasd13";
-
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
@@ -26,10 +26,9 @@ app.get("/api/whatsapp", (req: Request, res: Response) => {
 });
 
 // --- 2. RECEPCIÓN DE MENSAJES (POST) ---
-app.post("/api/whatsapp", (req: Request, res: Response) => {
+app.post("/api/whatsapp", async (req: Request, res: Response) => {
   const body = req.body;
-
-  console.log(JSON.stringify(body, null, 2)); // Log del mensaje completo
+  console.log(JSON.stringify(body, null, 2));
 
   try {
     if (body.object === "whatsapp_business_account") {
@@ -39,21 +38,63 @@ app.post("/api/whatsapp", (req: Request, res: Response) => {
 
       console.log(`Mensaje de ${from}: ${msg_body}`);
 
-      // --- AQUÍ VA TU LÓGICA FUTURA ---
-      // 1. Guardar 'msg_body' en Supabase (await supabase.insert(...))
-      // 2. Llamar al Servicio B (RAG) (await fetch(...))
-      // 3. Guardar respuesta_bot en Supabase
-      // 4. Enviar respuesta_bot a Meta
-      // ------------------------------------
+      // --- AQUÍ ESTÁ LA LÓGICA DE RESPUESTA ---
+
+      // 1. Define tu respuesta de "plantilla"
+      const botResponse = "¡Hola! Recibí tu mensaje. 🤖";
+
+      // 2. Llama a la función para enviar el mensaje
+      await sendWhatsAppMessage(from, botResponse);
+
+      // ----------------------------------------
     }
 
-    // Responde 200 OK a Meta INMEDIATAMENTE
+    // Responde 200 OK a Meta
     res.status(200).send("EVENT_RECEIVED");
   } catch (error) {
     console.error("Error procesando el mensaje:", error);
     res.status(200).send("EVENT_RECEIVED_WITH_ERROR");
   }
 });
+
+// --- 3. NUEVA FUNCIÓN PARA ENVIAR MENSAJES ---
+async function sendWhatsAppMessage(to: string, text: string) {
+  const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+  const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
+  const url = `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`;
+
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${ACCESS_TOKEN}`,
+  };
+
+  const body = {
+    messaging_product: "whatsapp",
+    to: to,
+    type: "text",
+    text: { body: text },
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(
+        "Error al enviar mensaje:",
+        JSON.stringify(errorData, null, 2)
+      );
+    } else {
+      console.log("¡Respuesta enviada exitosamente!");
+    }
+  } catch (error) {
+    console.error("Excepción al enviar mensaje:", error);
+  }
+}
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en el puerto ${PORT}`);
