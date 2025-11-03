@@ -1,4 +1,4 @@
-export type SenderType = "user" | "ai";
+export type SenderType = "user" | "ai" | "admin";
 
 // Payload que espera la API
 export interface LocalApiPayload {

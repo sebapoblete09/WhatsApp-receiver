@@ -1,7 +1,13 @@
 import { type Request, type Response } from "express";
 import { config } from "../config.js";
 import { processIncomingMessage } from "./message.service.js";
-import { type WhatsAppWebhookBody } from "./message.types.js";
+import {
+  type WhatsAppWebhookBody,
+  type LocalApiPayload,
+} from "./message.types.js";
+// Importamos los servicios que necesita la Función 2 (envío humano)
+import { sendWhatsAppMessage } from "../service/meta.client.js";
+import { saveMessage } from "../service/localApi.client.js";
 
 // 1. VERIFICACIÓN DEL WEBHOOK (GET)
 export function verifyWebhook(req: Request, res: Response) {
@@ -46,5 +52,38 @@ export async function handleWebhook(req: Request, res: Response) {
     console.error("Error procesando el mensaje:", error);
     // Respondemos 200 OK igualmente para que Meta no reintente
     res.status(200).send("EVENT_RECEIVED_WITH_ERROR");
+  }
+}
+
+// 3. Envio respuesta Humana, este EndPoit lo ocupa el front
+export async function sendHumanResponse(req: Request, res: Response) {
+  try {
+    //El front envia el numero el texto y el nombre
+    const { phone, content, name } = req.body;
+
+    if (!phone || !content) {
+      return res
+        .status(400)
+        .send({ error: "Faltan 'phone' y 'text' en el body" });
+    }
+
+    // 1. Enviar el mensaje humano a WhatsApp
+    await sendWhatsAppMessage(phone, content);
+
+    const payload: LocalApiPayload = {
+      senderType: "admin",
+      phone: phone,
+      name: "admin aqc",
+      content: content,
+    };
+    await saveMessage(payload);
+
+    // 3. Responder al Front-End que todo salió bien
+    res
+      .status(200)
+      .send({ success: true, message: "Mensaje humano enviado y guardado." });
+  } catch (error) {
+    console.error("Error al enviar mensaje humano:", error);
+    res.status(500).send({ error: "Error al enviar mensaje humano" });
   }
 }
