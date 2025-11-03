@@ -1,8 +1,17 @@
 import { config } from "../config.js";
 
-const url = `https://graph.facebook.com/v19.0/${config.metaPhoneNumberId}/messages`;
-
 export async function sendWhatsAppMessage(to: string, text: string) {
+  // 1. Validamos los configs necesarios
+  if (!config.metaPhoneNumberId || !config.metaAccessToken) {
+    console.error(
+      "Error: PHONE_NUMBER_ID o ACCESS_TOKEN no están definidos en .env"
+    );
+    return;
+  }
+
+  // 2. Construimos la URL
+  const url = `https://graph.facebook.com/v19.0/${config.metaPhoneNumberId}/messages`;
+
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${config.metaAccessToken}`,
@@ -29,7 +38,7 @@ export async function sendWhatsAppMessage(to: string, text: string) {
         JSON.stringify(errorData, null, 2)
       );
     } else {
-      console.log("¡Respuesta de Meta enviada exitosamente!");
+      console.log(`¡Respuesta enviada a ${to}!`);
     }
   } catch (error) {
     console.error("Excepción al enviar mensaje a Meta:", error);
