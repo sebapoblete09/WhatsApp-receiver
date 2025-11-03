@@ -1,5 +1,6 @@
 import { sendWhatsAppMessage } from "../service/meta.client.js";
 import { saveMessageToApi } from "../service/localApi.client.js";
+import { generateFreeResponse } from "../service/gemini.client.js";
 
 // El "Caso de Uso" principal: Procesar un mensaje entrante
 export async function processIncomingMessage(
@@ -16,8 +17,9 @@ export async function processIncomingMessage(
       content: content,
     });
 
-    // 2. Responder al usuario
-    const botResponse = "¡Hola! Recibí tu mensaje. 🤖";
+    // 2. (MODIFICADO) Generar la respuesta de la IA
+    console.log(`Generando respuesta para: "${content}"`);
+    const botResponse = await generateFreeResponse(content);
 
     await sendWhatsAppMessage(phone, botResponse);
 
