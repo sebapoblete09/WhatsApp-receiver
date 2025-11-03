@@ -9,6 +9,7 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 8000;
 const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN;
+const LOCAL_API_ENDPOINT = process.env.LOCAL_API_ENDPOINT;
 
 // --- 1. VERIFICACIÓN DEL WEBHOOK (GET) ---
 app.get("/api/whatsapp", (req: Request, res: Response) => {
@@ -27,24 +28,29 @@ app.get("/api/whatsapp", (req: Request, res: Response) => {
 
 // --- 2. RECEPCIÓN DE MENSAJES (POST) ---
 app.post("/api/whatsapp", async (req: Request, res: Response) => {
+  const senderUser = "user";
+  const senderAI = "ai";
   const body = req.body;
   console.log(JSON.stringify(body, null, 2));
 
   try {
     if (body.object === "whatsapp_business_account") {
       const message = body.entry[0].changes[0].value.messages[0];
-      const from = message.from;
-      const msg_body = message.text.body;
+      const phone = message.from;
+      const content = message.text.body;
+      const name = body.entry[0].changes[0].value.contacts[0].profile.name;
 
-      console.log(`Mensaje de ${from}: ${msg_body}`);
+      console.log(`Mensaje de ${phone}: ${content}`);
 
-      // --- AQUÍ ESTÁ LA LÓGICA DE RESPUESTA ---
+      //1. Enviar a la api el mensaje del cliente
+      await saveMessageToApi(phone, content, senderUser, name);
 
-      // 1. Define tu respuesta de "plantilla"
+      // 2. Responder al usuario
       const botResponse = "¡Hola! Recibí tu mensaje. 🤖";
+      await sendWhatsAppMessage(phone, botResponse);
 
-      // 2. Llama a la función para enviar el mensaje
-      await sendWhatsAppMessage(from, botResponse);
+      //3. Enviar respuesta a la Api
+      await saveMessageToApi(phone, botResponse, senderAI, name);
 
       // ----------------------------------------
     }
@@ -93,6 +99,58 @@ async function sendWhatsAppMessage(to: string, text: string) {
     }
   } catch (error) {
     console.error("Excepción al enviar mensaje:", error);
+  }
+}
+
+// --- 4. Guardar mensaje en Api
+async function saveMessageToApi(
+  phone: string,
+  content: string,
+  sender: string,
+  name: String
+) {
+  if (!LOCAL_API_ENDPOINT) {
+    console.error(
+      "Error: LOCAL_API_ENDPOINT no está definido en el archivo .env"
+    );
+    return; // Salir de la función si la URL no existe
+  }
+
+  // El endpoint que te pasó tu compañero (ahora desde .env)
+  const url = LOCAL_API_ENDPOINT;
+
+  const payload = {
+    senderType: sender,
+    phone: phone,
+    name: name, // Puedes ajustar esto según tus necesidades
+    content: content,
+  };
+
+  console.log("Enviando a Api:", JSON.stringify(payload, null, 2));
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        //agregar a futuro autorizacion
+        // 'Authorization': 'Bearer TU_API_KEY_LOCAL'
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(
+        "Error al guardar mensaje en Api:",
+        JSON.stringify(errorData, null, 2)
+      );
+    } else {
+      const data = await response.json();
+      console.log("¡Mensaje guardado en API local exitosamente!", data);
+    }
+  } catch (error) {
+    console.error("Excepción al conectar con API :", error);
   }
 }
 
