@@ -1,6 +1,10 @@
 import { type Request, type Response } from "express";
 import { config } from "../config.js";
-import { processIncomingMessage } from "./message.service.js";
+import {
+  processImageMessage,
+  processIncomingMessage,
+  processAudioMessage,
+} from "./message.service.js";
 import {
   type WhatsAppWebhookBody,
   type LocalApiPayload,
@@ -27,22 +31,44 @@ export function verifyWebhook(req: Request, res: Response) {
 // 2. RECEPCIÓN DE MENSAJES (POST)
 export async function handleWebhook(req: Request, res: Response) {
   const body = req.body as WhatsAppWebhookBody;
-  console.log(JSON.stringify(body, null, 2));
+  //console.log(JSON.stringify(body, null, 2));
 
   try {
     if (body.object === "whatsapp_business_account") {
       const message = body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
       const contact = body.entry?.[0]?.changes?.[0]?.value?.contacts?.[0];
 
-      // Asegurarse de que es un mensaje de texto válido
-      if (message && message.text) {
+      if (message) {
         const phone = message.from;
-        const content = message.text.body;
-        const name = contact?.profile?.name || "Usuario"; // Fallback por si no viene el nombre
+        const name = contact?.profile?.name || "Usuario"; // Fallback
 
-        // Llamamos al servicio para que haga el trabajo
-        // Usamos 'await' para asegurar que se procese, pero no bloqueamos la respuesta a Meta
-        processIncomingMessage(phone, content, name);
+        //Que hace segun el tipo de mensaje
+        switch (message.type) {
+          case "text":
+            const content = message.text.body;
+            processIncomingMessage(phone, content, name);
+            break;
+
+          case "image":
+            const imageId = message.image.id; //obtener la id de la imagen
+            console.log(
+              `Mensaje de IMAGEN recibido de ${name}. ID: ${imageId}`
+            );
+            // Llamamos a una nueva función para manejar imágenes
+
+            processImageMessage(phone, imageId, name);
+            break;
+
+          case "audio":
+            const audioId = message.audio.id; //obtener la id del audio
+            console.log(`Mensaje de AUDIO recibido de ${name}. ID: ${audioId}`);
+            processAudioMessage(phone, audioId, name);
+            break;
+
+          default:
+            console.warn(`Tipo de mensaje no manejado:`);
+            break;
+        }
       }
     }
 

@@ -1,7 +1,6 @@
 import { config } from "../config.js";
 import { type LocalApiPayload } from "../message/message.types.js";
 
-// Tu compañero te dio esta URL base: http://localhost:8080/api/v1
 const BASE_URL = config.localApiEndpoint;
 
 /**
@@ -53,7 +52,6 @@ export async function getConversationStatus(phone: string): Promise<boolean> {
 /**
  * (NUEVA FUNCIÓN 2)
  * Simplemente guarda un mensaje en la base de datos.
- * Llama a: POST /api/v1/messages/intake (o la ruta que te dio tu compañero)
  * @param payload El mensaje a guardar (de usuario, IA o humano).
  */
 export async function saveMessage(payload: LocalApiPayload): Promise<void> {

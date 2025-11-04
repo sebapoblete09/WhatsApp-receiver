@@ -1,15 +1,20 @@
-import { sendWhatsAppMessage } from "../service/meta.client.js";
+import {
+  downloadMedia,
+  getMediaDownloadUrl,
+  sendWhatsAppMessage,
+} from "../service/meta.client.js";
 import {
   getConversationStatus,
   saveMessage,
 } from "../service/localApi.client.js";
 import { type LocalApiPayload } from "./message.types.js";
 import { generateFreeResponse } from "../service/gemini.client.js";
+import fs from "fs";
+import path from "path";
+import process from "process"; // Para saber la ruta raíz de tu proyecto
+//---- (FUNCION 1: MENSAJE COMO TEXTO) ------ //
+//----- Procesa un mensaje de texto entrante de WhatsApp. ----//
 
-/**
- * (Función 1: El Webhook)
- * Procesa un mensaje entrante de WhatsApp.
- */
 export async function processIncomingMessage(
   phone: string,
   content: string,
@@ -18,7 +23,7 @@ export async function processIncomingMessage(
   try {
     console.log(`Procesando mensaje de ${phone}...`);
 
-    // 1. (NUEVO) Primero, verificamos el estado de la IA
+    // 1. Primero, verificamos el estado de la IA
     // isHumanOverride = true significa que la IA está PAUSADA
     const isHumanOverride = await getConversationStatus(phone);
 
@@ -35,7 +40,7 @@ export async function processIncomingMessage(
     if (isHumanOverride) {
       // --- IA PAUSADA (humano al control) ---
       console.log(
-        `IA pausada para ${phone} (human_override=true). No se responde.`
+        `IA pausada para ${phone} (human_override=true). No se responde. \n---------------`
       );
       // No hacemos nada. El trabajo termina aquí.
       return;
@@ -57,8 +62,55 @@ export async function processIncomingMessage(
       name: "Bot IA",
       content: botResponse,
     };
-    await saveMessage(aiPayload); // Usamos la nueva función simple
+    await saveMessage(aiPayload);
+    console.log("-----------------------------"); // Usamos la nueva función simple
   } catch (error) {
     console.error("Error en el servicio de procesamiento de mensajes:", error);
+  }
+}
+
+export async function processImageMessage(
+  phone: string,
+  imageId: string,
+  name: string
+) {
+  console.log(`[PRUEBA LOCAL] Procesando imagen ${imageId} de ${name}...`);
+
+  try {
+    // 1. Descargar la imagen de Meta
+    const downloadUrl = await getMediaDownloadUrl(imageId);
+    const imageBuffer = await downloadMedia(downloadUrl);
+    console.log(`[PRUEBA LOCAL] Imagen descargada.`);
+
+    // 2. Guardar la imagen en el disco
+    const fileName = "imagen_recibida.jpg";
+    // path.join(process.cwd()) la guarda en la carpeta raíz de tu proyecto
+    const savePath = path.join(process.cwd(), fileName);
+
+    fs.writeFileSync(savePath, imageBuffer); // ¡Aquí se guarda el archivo!
+
+    console.log(`[PRUEBA LOCAL] Imagen guardada en: ${savePath}`);
+
+    // 3. Avisar al usuario por WhatsApp
+    await sendWhatsAppMessage(
+      phone,
+      `[PRUEBA] ¡Recibí tu imagen! La guardé en mi servidor local como '${fileName}'.`
+    );
+  } catch (error) {
+    console.error(`Error al procesar la imagen ${imageId}:`, error);
+  }
+}
+
+//---- FUNCION 3: MENSAJE COMO AUDIO ------ //
+export async function processAudioMessage(
+  phone: string,
+  audioId: string,
+  name: string
+) {
+  console.log(`[TAREA PENDIENTE] Procesando audio ${audioId} de ${name}...`);
+  try {
+    //ACA VA LA LOGICA PARA DESCARGAR EL AUDIO Y MANDARSELO A SUPABASE, HAY QUE VER SI MANDARSELO COMO AUDIO O TEXTO
+  } catch (error) {
+    console.error(`Error al procesar el audio ${audioId}:`, error);
   }
 }
