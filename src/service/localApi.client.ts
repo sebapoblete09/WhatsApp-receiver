@@ -86,7 +86,7 @@ export async function saveMessage(payload: ApiPayload): Promise<void> {
     const response = await fetch(url, {
       method: "POST",
       body: formData,
-      // No se pone "Content-Type", 'form-data' lo gestiona solo
+      headers: (formData as any).getHeaders(), // <-- ¡AÑADE ESTA LÍNEA!
     });
 
     if (!response.ok) {
