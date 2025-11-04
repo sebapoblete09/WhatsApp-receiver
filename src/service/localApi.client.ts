@@ -1,6 +1,7 @@
 import { config } from "../config.js";
 import { type ApiPayload } from "../message/message.types.js";
-
+// Renombra la importación para evitar la colisión con el FormData nativo
+import PackageFormData from "form-data";
 const BASE_URL = config.localApiEndpoint;
 
 /**
@@ -64,8 +65,7 @@ export async function saveMessage(payload: ApiPayload): Promise<void> {
   console.log(`Guardando mensaje (FormData) en: ${url}`);
 
   // 1. Crear el FormData
-  const formData = new FormData();
-
+  const formData = new PackageFormData();
   // 2. Añadir todos los campos de texto
   formData.append("senderType", payload.senderType);
   formData.append("phone", payload.phone);
@@ -85,8 +85,9 @@ export async function saveMessage(payload: ApiPayload): Promise<void> {
   try {
     const response = await fetch(url, {
       method: "POST",
-      body: formData,
-      headers: (formData as any).getHeaders(), // <-- ¡AÑADE ESTA LÍNEA!
+      body: formData as any, // <-- ¡Solución aquí!
+      // Mantén el 'as any' en getHeaders también, por si acaso
+      headers: (formData as any).getHeaders(),
     });
 
     if (!response.ok) {
