@@ -1,11 +1,16 @@
 export type SenderType = "user" | "ai" | "admin";
 
 // Payload que espera la API
-export interface LocalApiPayload {
+export interface ApiPayload {
   senderType: SenderType;
   phone: string;
   name: string;
-  content: string;
+  content?: string;
+  file?: {
+    // El archivo es opcional
+    buffer: Buffer;
+    fileName: string;
+  };
 }
 
 // Tipado básico del Webhook de Meta

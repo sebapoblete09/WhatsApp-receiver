@@ -7,11 +7,8 @@ import {
   getConversationStatus,
   saveMessage,
 } from "../service/localApi.client.js";
-import { type LocalApiPayload } from "./message.types.js";
+import { type ApiPayload } from "./message.types.js";
 import { generateFreeResponse } from "../service/gemini.client.js";
-import fs from "fs";
-import path from "path";
-import process from "process"; // Para saber la ruta raíz de tu proyecto
 //---- (FUNCION 1: MENSAJE COMO TEXTO) ------ //
 //----- Procesa un mensaje de texto entrante de WhatsApp. ----//
 
@@ -28,7 +25,7 @@ export async function processIncomingMessage(
     const isHumanOverride = await getConversationStatus(phone);
 
     // 2. Guardamos el mensaje del usuario SIEMPRE
-    const userPayload: LocalApiPayload = {
+    const userPayload: ApiPayload = {
       senderType: "user",
       phone: phone,
       name: name,
@@ -56,7 +53,7 @@ export async function processIncomingMessage(
     await sendWhatsAppMessage(phone, botResponse);
 
     // 4c. Guardar la respuesta de la IA
-    const aiPayload: LocalApiPayload = {
+    const aiPayload: ApiPayload = {
       senderType: "ai",
       phone: phone,
       name: "Bot IA",
