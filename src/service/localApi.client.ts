@@ -1,5 +1,5 @@
 import { config } from "../config.js";
-import { type LocalApiPayload } from "../message/message.types.js";
+import { type ApiPayload } from "../message/message.types.js";
 
 const BASE_URL = config.localApiEndpoint;
 
@@ -54,20 +54,38 @@ export async function getConversationStatus(phone: string): Promise<boolean> {
  * Simplemente guarda un mensaje en la base de datos.
  * @param payload El mensaje a guardar (de usuario, IA o humano).
  */
-export async function saveMessage(payload: LocalApiPayload): Promise<void> {
+export async function saveMessage(payload: ApiPayload): Promise<void> {
   if (!BASE_URL) {
     console.error("Error: LOCAL_API_ENDPOINT no está definido");
     return;
   }
 
   const url = `${BASE_URL}/messages`;
-  console.log(`Guardando mensaje en: ${url}`);
+  console.log(`Guardando mensaje (FormData) en: ${url}`);
+
+  // 1. Crear el FormData
+  const formData = new FormData();
+
+  // 2. Añadir todos los campos de texto
+  formData.append("senderType", payload.senderType);
+  formData.append("phone", payload.phone);
+  formData.append("name", payload.name);
+
+  // 4. Añadir 'file' (archivo) SÓLO si existe
+  // El código corregido
+  if (payload.file) {
+    formData.append(
+      "file",
+      payload.file.buffer as any, // <-- ¡Solución aquí!
+      payload.file.fileName
+    );
+  }
 
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: formData,
+      // No se pone "Content-Type", 'form-data' lo gestiona solo
     });
 
     if (!response.ok) {

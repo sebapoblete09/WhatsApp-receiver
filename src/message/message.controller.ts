@@ -5,10 +5,7 @@ import {
   processIncomingMessage,
   processAudioMessage,
 } from "./message.service.js";
-import {
-  type WhatsAppWebhookBody,
-  type LocalApiPayload,
-} from "./message.types.js";
+import { type WhatsAppWebhookBody, type ApiPayload } from "./message.types.js";
 // Importamos los servicios que necesita la Función 2 (envío humano)
 import { sendWhatsAppMessage } from "../service/meta.client.js";
 import { saveMessage } from "../service/localApi.client.js";
@@ -96,7 +93,7 @@ export async function sendHumanResponse(req: Request, res: Response) {
     // 1. Enviar el mensaje humano a WhatsApp
     await sendWhatsAppMessage(phone, content);
 
-    const payload: LocalApiPayload = {
+    const payload: ApiPayload = {
       senderType: "admin",
       phone: phone,
       name: "admin aqc",
