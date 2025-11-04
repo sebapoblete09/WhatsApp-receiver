@@ -110,6 +110,7 @@ export async function processAudioMessage(
   console.log(`[TAREA PENDIENTE] Procesando audio ${audioId} de ${name}...`);
   try {
     //ACA VA LA LOGICA PARA DESCARGAR EL AUDIO Y MANDARSELO A SUPABASE, HAY QUE VER SI MANDARSELO COMO AUDIO O TEXTO
+    console.log("TAREA PENDIENTE: Descargar y procesar audio.");
   } catch (error) {
     console.error(`Error al procesar el audio ${audioId}:`, error);
   }
