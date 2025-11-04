@@ -70,6 +70,7 @@ export async function saveMessage(payload: ApiPayload): Promise<void> {
   formData.append("senderType", payload.senderType);
   formData.append("phone", payload.phone);
   formData.append("name", payload.name);
+  formData.append("content", payload.content || "");
 
   // 4. Añadir 'file' (archivo) SÓLO si existe
   // El código corregido
