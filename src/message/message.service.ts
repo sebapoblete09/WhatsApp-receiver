@@ -82,19 +82,10 @@ export async function processImageMessage(
     const imageBuffer = await downloadMedia(downloadUrl);
     console.log(`[PRUEBA LOCAL] Imagen descargada.`);
 
-    // 2. Guardar la imagen en el disco
-    const fileName = "imagen_recibida.jpg";
-    // path.join(process.cwd()) la guarda en la carpeta raíz de tu proyecto
-    const savePath = path.join(process.cwd(), fileName);
-
-    fs.writeFileSync(savePath, imageBuffer); // ¡Aquí se guarda el archivo!
-
-    console.log(`[PRUEBA LOCAL] Imagen guardada en: ${savePath}`);
-
     // 3. Avisar al usuario por WhatsApp
     await sendWhatsAppMessage(
       phone,
-      `[PRUEBA] ¡Recibí tu imagen! La guardé en mi servidor local como '${fileName}'.`
+      `[PRUEBA] ¡Recibí tu imagen! Pero aun no la subo XD'.`
     );
   } catch (error) {
     console.error(`Error al procesar la imagen ${imageId}:`, error);
