@@ -76,7 +76,7 @@ export async function generateFreeResponse(prompt: string): Promise<string> {
       "match_google_documents",
       {
         query_embedding: questionVector, // El vector de la pregunta
-        match_threshold: 0.7, // Nivel de similitud (puedes ajustarlo)
+        match_threshold: 0.5, // Nivel de similitud (puedes ajustarlo)
         match_count: 3, // Traer los 3 mejores trozos
       }
     );
