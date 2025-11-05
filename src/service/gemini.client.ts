@@ -76,7 +76,7 @@ export async function generateFreeResponse(prompt: string): Promise<string> {
       "match_google_documents",
       {
         query_embedding: questionVector, // El vector de la pregunta
-        match_threshold: 0.5, // Nivel de similitud (puedes ajustarlo)
+        match_threshold: 0.2, // Nivel de similitud (puedes ajustarlo)
         match_count: 3, // Traer los 3 mejores trozos
       }
     );
@@ -107,6 +107,7 @@ export async function generateFreeResponse(prompt: string): Promise<string> {
       systemPrompt = `Eres un asistente experto de la empresa "Impekble".
 Tu misión es responder la pregunta del usuario basándote ÚNICAMENTE en el siguiente contexto.
 Si la respuesta no está en el contexto, di amablemente: "No tengo esa información, pero un agente te atenderá".
+Ademas responde de forma amigable, usando emojis, y una estrucutra ordenada, lo mas parecido a una persona real, respuestas cortas y precisas
 
 Contexto:
 ${context}
