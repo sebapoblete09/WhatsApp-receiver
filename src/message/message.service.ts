@@ -178,3 +178,59 @@ export async function processAudioMessage(
     console.error(`Error al procesar el audio ${audioId}:`, error);
   }
 }
+
+export async function processVideoMessage(
+  phone: string,
+  videoId: string,
+  name: string
+) {
+  console.log(`Procesando video ${videoId} de ${name}...`);
+  try {
+    //ACA VA LA LOGICA PARA DESCARGAR EL AUDIO Y MANDARSELO A SUPABASE, HAY QUE VER SI MANDARSELO COMO AUDIO O TEXTO
+    // 1. Verificamos el estado de la IA (Lógica de Pausa)
+    const isHumanOverride = await getConversationStatus(phone);
+
+    // 2. Descargar el video de Meta
+    const downloadUrl = await getMediaDownloadUrl(videoId);
+
+    if (!downloadUrl) {
+      console.error("No se pudo obtener la URL del video.");
+      return;
+    }
+
+    const audioBuffer = await downloadMedia(downloadUrl);
+
+    if (!audioBuffer) {
+      console.error("No se pudo descargar el audio.");
+      return;
+    }
+
+    console.log(`Audio descargado.`);
+
+    // 3. Guardamos el mensaje de IMAGEN del usuario (Tu petición)
+    const userPayload: ApiPayload = {
+      senderType: "user",
+      phone: phone,
+      name: name,
+      content: "",
+      file: {
+        // Sin contenido de texto (o podrías poner "Imagen adjunta")
+        data: audioBuffer.data, // El ArrayBuffer
+        mimeType: audioBuffer.mimeType, // El tipo de audio real
+        filename: `${phone}.${videoId}.mp4`, // Un nombre de archivo genérico
+      },
+    };
+
+    // ¡Aquí pasamos el archivo a saveMessage!
+    await saveMessage(userPayload);
+    // 4. Lógica condicional (Pausa)
+    if (isHumanOverride) {
+      console.log(`IA pausada para ${phone}. No se responde a la imagen.`);
+      return;
+    }
+
+    console.log("TAREA PENDIENTE: Descargar y procesar video.");
+  } catch (error) {
+    console.error(`Error al procesar el video ${videoId}:`, error);
+  }
+}

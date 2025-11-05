@@ -65,8 +65,8 @@ interface VideoMessage {
   from: string;
   id: string;
   timestamp: string;
-  type: "audio";
-  audio: {
+  type: "video";
+  video: {
     mime_type: string;
     sha256: string;
     id: string;
