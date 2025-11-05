@@ -69,7 +69,8 @@ export async function processIncomingMessage(
 export async function processImageMessage(
   phone: string,
   imageId: string,
-  name: string
+  name: string,
+  content: string
 ) {
   console.log(`[PRUEBA LOCAL] Procesando imagen ${imageId} de ${name}...`);
 
@@ -99,7 +100,7 @@ export async function processImageMessage(
       senderType: "user",
       phone: phone,
       name: name,
-      content: "",
+      content: content,
       file: {
         // Sin contenido de texto (o podrías poner "Imagen adjunta")
         data: imageBuffer.data, // El ArrayBuffer

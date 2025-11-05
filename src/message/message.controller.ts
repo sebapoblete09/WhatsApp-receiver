@@ -48,12 +48,13 @@ export async function handleWebhook(req: Request, res: Response) {
 
           case "image":
             const imageId = message.image.id; //obtener la id de la imagen
+            const caption = message.image.caption || "";
             console.log(
               `Mensaje de IMAGEN recibido de ${name}. ID: ${imageId}`
             );
             // Llamamos a una nueva función para manejar imágenes
 
-            processImageMessage(phone, imageId, name);
+            processImageMessage(phone, imageId, name, caption);
             break;
 
           case "audio":
