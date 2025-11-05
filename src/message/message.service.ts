@@ -72,7 +72,7 @@ export async function processImageMessage(
   name: string,
   content: string
 ) {
-  console.log(`[PRUEBA LOCAL] Procesando imagen ${imageId} de ${name}...`);
+  console.log(`Procesando imagen ${imageId} de ${name}...`);
 
   try {
     // 1. Verificamos el estado de la IA (Lógica de Pausa)
@@ -93,7 +93,7 @@ export async function processImageMessage(
       return;
     }
 
-    console.log(`[PRUEBA LOCAL] Imagen descargada.`);
+    console.log(`Imagen descargada.`);
 
     // 3. Guardamos el mensaje de IMAGEN del usuario (Tu petición)
     const userPayload: ApiPayload = {
@@ -117,14 +117,6 @@ export async function processImageMessage(
       console.log(`IA pausada para ${phone}. No se responde a la imagen.`);
       return;
     }
-
-    // 2. Guardar la imagen en el disco
-    const fileName = "imagen_recibida.jpg";
-
-    await sendWhatsAppMessage(
-      phone,
-      `[PRUEBA] ¡Recibí tu imagen! La guardé en mi servidor local como '${fileName}'.`
-    );
   } catch (error) {
     console.error(`Error al procesar la imagen ${imageId}:`, error);
   }
@@ -136,9 +128,51 @@ export async function processAudioMessage(
   audioId: string,
   name: string
 ) {
-  console.log(`[TAREA PENDIENTE] Procesando audio ${audioId} de ${name}...`);
+  console.log(`Procesando audio ${audioId} de ${name}...`);
   try {
     //ACA VA LA LOGICA PARA DESCARGAR EL AUDIO Y MANDARSELO A SUPABASE, HAY QUE VER SI MANDARSELO COMO AUDIO O TEXTO
+    // 1. Verificamos el estado de la IA (Lógica de Pausa)
+    const isHumanOverride = await getConversationStatus(phone);
+
+    // 2. Descargar el audio de Meta
+    const downloadUrl = await getMediaDownloadUrl(audioId);
+
+    if (!downloadUrl) {
+      console.error("No se pudo obtener la URL de la imagen.");
+      return;
+    }
+
+    const audioBuffer = await downloadMedia(downloadUrl);
+
+    if (!audioBuffer) {
+      console.error("No se pudo descargar el audio.");
+      return;
+    }
+
+    console.log(`Audio descargado.`);
+
+    // 3. Guardamos el mensaje de IMAGEN del usuario (Tu petición)
+    const userPayload: ApiPayload = {
+      senderType: "user",
+      phone: phone,
+      name: name,
+      content: "",
+      file: {
+        // Sin contenido de texto (o podrías poner "Imagen adjunta")
+        data: audioBuffer.data, // El ArrayBuffer
+        mimeType: audioBuffer.mimeType, // El tipo de audio real
+        filename: `${phone}.${audioId}.mp3`, // Un nombre de archivo genérico
+      },
+    };
+
+    // ¡Aquí pasamos el archivo a saveMessage!
+    await saveMessage(userPayload);
+    // 4. Lógica condicional (Pausa)
+    if (isHumanOverride) {
+      console.log(`IA pausada para ${phone}. No se responde a la imagen.`);
+      return;
+    }
+
     console.log("TAREA PENDIENTE: Descargar y procesar audio.");
   } catch (error) {
     console.error(`Error al procesar el audio ${audioId}:`, error);

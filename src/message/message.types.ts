@@ -60,4 +60,18 @@ interface AudioMessage {
   };
 }
 
-type WhatsAppMessage = TextMessage | ImageMessage | AudioMessage;
+// Un mensaje de video
+interface VideoMessage {
+  from: string;
+  id: string;
+  timestamp: string;
+  type: "audio";
+  audio: {
+    mime_type: string;
+    sha256: string;
+    id: string;
+    caption?: string;
+  };
+}
+
+type WhatsAppMessage = TextMessage | ImageMessage | AudioMessage | VideoMessage;
