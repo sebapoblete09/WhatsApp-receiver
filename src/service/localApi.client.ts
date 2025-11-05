@@ -86,8 +86,6 @@ export async function saveMessage(payload: ApiPayload): Promise<void> {
     const response = await fetch(url, {
       method: "POST",
       body: formData as any, // <-- ¡Solución aquí!
-      // Mantén el 'as any' en getHeaders también, por si acaso
-      headers: (formData as any).getHeaders(),
     });
 
     if (!response.ok) {
