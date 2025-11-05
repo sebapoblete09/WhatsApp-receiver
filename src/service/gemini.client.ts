@@ -1,10 +1,11 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "../config.js";
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import supabasePkg from "@supabase/supabase-js";
+const { createClient } = supabasePkg;
 
 // Variable para inicializar el cliente (lo hacemos 'let' para manejar el error)
 let genAI: GoogleGenerativeAI;
-let supabase: SupabaseClient;
+let supabase: supabasePkg.SupabaseClient;
 
 // Modelos (los separamos para claridad)
 let embeddingModel: any;
