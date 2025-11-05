@@ -6,11 +6,7 @@ export interface ApiPayload {
   phone: string;
   name: string;
   content?: string;
-  file?: {
-    // El archivo es opcional
-    buffer: Buffer;
-    fileName: string;
-  };
+  file?: { data: ArrayBuffer; filename: string; mimeType: string };
 }
 
 // Tipado básico del Webhook de Meta

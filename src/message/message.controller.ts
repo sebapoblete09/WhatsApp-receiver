@@ -59,7 +59,7 @@ export async function handleWebhook(req: Request, res: Response) {
           case "audio":
             const audioId = message.audio.id; //obtener la id del audio
             console.log(`Mensaje de AUDIO recibido de ${name}. ID: ${audioId}`);
-            processAudioMessage(phone, audioId, name);
+            //processAudioMessage(phone, audioId, name);
             break;
 
           default:

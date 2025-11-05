@@ -2,6 +2,14 @@ import { config } from "../config.js";
 
 export async function sendWhatsAppMessage(to: string, text: string) {
   // 1. Validamos los configs necesarios
+
+  if (!text || text.trim() === "") {
+    console.error(
+      `Error: Se intentó enviar un mensaje vacío a ${to}. (Probablemente bloqueado por IA). Abortando envío.`
+    );
+    return;
+  }
+
   if (!config.metaPhoneNumberId || !config.metaAccessToken) {
     console.error(
       "Error: PHONE_NUMBER_ID o ACCESS_TOKEN no están definidos en .env"
@@ -89,7 +97,9 @@ export async function getMediaDownloadUrl(mediaId: string): Promise<string> {
  * @param mediaUrl La URL temporal obtenida del Paso 1.
  * @returns Un Buffer con los datos de la imagen.
  */
-export async function downloadMedia(mediaUrl: string): Promise<Buffer> {
+export async function downloadMedia(
+  mediaUrl: string
+): Promise<{ data: ArrayBuffer; mimeType: string } | null> {
   try {
     // Asegurarse de que el token esté disponible
     if (!config.metaAccessToken) {
@@ -110,9 +120,11 @@ export async function downloadMedia(mediaUrl: string): Promise<Buffer> {
       );
     }
 
-    // response.buffer() convierte la respuesta en un Buffer binario
     const arrayBuffer = await response.arrayBuffer();
-    return Buffer.from(arrayBuffer);
+    const mimeType =
+      response.headers.get("content-type") || "application/octet-stream";
+
+    return { data: arrayBuffer, mimeType };
   } catch (error) {
     console.error("Error en downloadMedia:", error);
     throw error;
