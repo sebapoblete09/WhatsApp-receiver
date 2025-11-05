@@ -4,6 +4,7 @@ import {
   processImageMessage,
   processIncomingMessage,
   processAudioMessage,
+  processVideoMessage,
 } from "./message.service.js";
 import { type WhatsAppWebhookBody, type ApiPayload } from "./message.types.js";
 // Importamos los servicios que necesita la Función 2 (envío humano)
@@ -46,6 +47,12 @@ export async function handleWebhook(req: Request, res: Response) {
             processIncomingMessage(phone, content, name);
             break;
 
+          case "video":
+            const videoId = message.video.id; //obtener la id del video
+            console.log(`Mensaje de VIDEO recibido de ${name}. ID: ${videoId}`);
+            processVideoMessage(phone, videoId, name);
+            break;
+
           case "image":
             const imageId = message.image.id; //obtener la id de la imagen
             const caption = message.image.caption || "";
@@ -62,12 +69,6 @@ export async function handleWebhook(req: Request, res: Response) {
             console.log(`Mensaje de AUDIO recibido de ${name}. ID: ${audioId}`);
             processAudioMessage(phone, audioId, name);
             break;
-
-          /*case "video":
-              const videoId = message.video.id; //obtener la id del video
-              console.log(`Mensaje de VIDEO recibido de ${name}. ID: ${videoId}`);
-              processVideoMessage(phone, videoId, name);
-              break;*/
 
           default:
             console.warn(`Tipo de mensaje no manejado:`);
