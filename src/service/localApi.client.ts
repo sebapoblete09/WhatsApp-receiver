@@ -1,5 +1,6 @@
 import { config } from "../config.js";
 import { type ApiPayload } from "../message/message.types.js";
+
 // Renombra la importación para evitar la colisión con el FormData nativo
 const BASE_URL = config.localApiEndpoint;
 
