@@ -1,7 +1,11 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "../config.js";
 import supabasePkg from "@supabase/supabase-js";
 const { createClient } = supabasePkg;
+import {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold,
+} from "@google/generative-ai";
 
 // Variable para inicializar el cliente (lo hacemos 'let' para manejar el error)
 let genAI: GoogleGenerativeAI;
@@ -22,7 +26,25 @@ if (config.geminiApiKey && config.supabaseUrl && config.supabaseServiceKey) {
   // Modelo de Chat de Google
   chatModel = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
-    generationConfig: { maxOutputTokens: 500 }, // Limita la respuesta
+    generationConfig: { maxOutputTokens: 500 },
+    safetySettings: [
+      {
+        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+      },
+      {
+        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+      },
+      {
+        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+      },
+      {
+        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+        threshold: HarmBlockThreshold.BLOCK_NONE,
+      },
+    ], // Limita la respuesta
   });
 } else {
   console.error("FATAL: Faltan claves de IA (Gemini o Supabase) en .env");
