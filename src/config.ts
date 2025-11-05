@@ -11,6 +11,8 @@ export const config = {
   metaAccessToken: process.env.ACCESS_TOKEN,
   metaPhoneNumberId: process.env.PHONE_NUMBER_ID,
   geminiApiKey: process.env.GEMINI_API_KEY,
+  supabaseUrl: process.env.SUPABASE_URL,
+  supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
 };
 
 // Validación: Nos aseguramos de que las variables críticas existan al iniciar
@@ -28,4 +30,10 @@ if (!config.metaPhoneNumberId) {
 }
 if (!config.geminiApiKey) {
   throw new Error("GEMINI_API_KEY no está definido en .env");
+}
+if (!config.supabaseUrl) {
+  throw new Error("SUPABASE_URL no está definido en .env");
+}
+if (!config.supabaseServiceKey) {
+  throw new Error("SUPABASE_SERVICE_KEY no está definido en .env");
 }
