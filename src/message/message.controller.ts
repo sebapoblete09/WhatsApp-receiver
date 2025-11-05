@@ -63,6 +63,12 @@ export async function handleWebhook(req: Request, res: Response) {
             processAudioMessage(phone, audioId, name);
             break;
 
+          /*case "video":
+              const videoId = message.video.id; //obtener la id del video
+              console.log(`Mensaje de VIDEO recibido de ${name}. ID: ${videoId}`);
+              processVideoMessage(phone, videoId, name);
+              break;*/
+
           default:
             console.warn(`Tipo de mensaje no manejado:`);
             break;
@@ -83,7 +89,7 @@ export async function handleWebhook(req: Request, res: Response) {
 export async function sendHumanResponse(req: Request, res: Response) {
   try {
     //El front envia el numero el texto y el nombre
-    const { phone, content, name } = req.body;
+    const { phone, content, file } = req.body;
 
     if (!phone || !content) {
       return res
@@ -99,6 +105,7 @@ export async function sendHumanResponse(req: Request, res: Response) {
       phone: phone,
       name: "admin aqc",
       content: content,
+      file: file,
     };
     await saveMessage(payload);
 
