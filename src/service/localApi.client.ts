@@ -1,7 +1,6 @@
 import { config } from "../config.js";
 import { type ApiPayload } from "../message/message.types.js";
 // Renombra la importación para evitar la colisión con el FormData nativo
-import PackageFormData from "form-data";
 const BASE_URL = config.localApiEndpoint;
 
 /**
@@ -64,35 +63,47 @@ export async function saveMessage(payload: ApiPayload): Promise<void> {
   const url = `${BASE_URL}/messages`;
   console.log(`Guardando mensaje (FormData) en: ${url}`);
 
-  // 1. Crear el FormData
-  const formData = new PackageFormData();
-  // 2. Añadir todos los campos de texto
+  // 1. Crear el objeto FormData
+  const formData = new FormData();
+
+  // 2. Adjuntar todos los campos de texto
   formData.append("senderType", payload.senderType);
   formData.append("phone", payload.phone);
   formData.append("name", payload.name);
-  formData.append("content", payload.content || "");
+  formData.append("content", payload.content || ""); // Asegurarse de que content no sea 'null'
 
-  // 4. Añadir 'file' (archivo) SÓLO si existe
-  // El código corregido
+  // 3. Adjuntar el archivo si existe
   if (payload.file) {
-    formData.append(
-      "file",
-      payload.file.buffer as any, // <-- ¡Solución aquí!
-      payload.file.fileName
-    );
+    // ¡AHORA ESTO FUNCIONARÁ!
+    // new Blob() acepta un ArrayBuffer sin ningún problema.
+    const fileBlob = new Blob([payload.file.data], {
+      type: payload.file.mimeType,
+    });
+    formData.append("file", fileBlob, payload.file.filename);
+    console.log(`Adjuntando archivo: ${payload.file.filename}`);
+  } else {
+    console.log("No se adjuntó archivo (solo texto).");
   }
 
   try {
     const response = await fetch(url, {
       method: "POST",
-      body: formData as any, // <-- ¡Solución aquí!
+      body: formData,
+      // ¡IMPORTANTE! No pongas 'Content-Type' aquí.
+      // fetch() lo configurará automáticamente a 'multipart/form-data'
+      // con el 'boundary' correcto cuando le pasas un FormData.
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Error al guardar mensaje en API local:", errorData);
+      console.error(
+        "Error al guardar mensaje (FormData) en API local:",
+        errorData
+      );
     } else {
-      console.log(`Mensaje de ${payload.senderType} guardado exitosamente.`);
+      console.log(
+        `Mensaje (FormData) de ${payload.senderType} guardado exitosamente.`
+      );
     }
   } catch (error) {
     console.error("Excepción al conectar con API (saveMessage):", error);

@@ -74,21 +74,52 @@ export async function processImageMessage(
   console.log(`[PRUEBA LOCAL] Procesando imagen ${imageId} de ${name}...`);
 
   try {
-    // 1. Descargar la imagen de Meta
+    // 1. Verificamos el estado de la IA (Lógica de Pausa)
+    const isHumanOverride = await getConversationStatus(phone);
+
+    // 2. Descargar la imagen de Meta
     const downloadUrl = await getMediaDownloadUrl(imageId);
+
+    if (!downloadUrl) {
+      console.error("No se pudo obtener la URL de la imagen.");
+      return;
+    }
+
     const imageBuffer = await downloadMedia(downloadUrl);
+
+    if (!imageBuffer) {
+      console.error("No se pudo descargar la imagen.");
+      return;
+    }
+
     console.log(`[PRUEBA LOCAL] Imagen descargada.`);
+
+    // 3. Guardamos el mensaje de IMAGEN del usuario (Tu petición)
+    const userPayload: ApiPayload = {
+      senderType: "user",
+      phone: phone,
+      name: name,
+      content: "",
+      file: {
+        // Sin contenido de texto (o podrías poner "Imagen adjunta")
+        data: imageBuffer.data, // El ArrayBuffer
+        filename: `${imageId}.jpg`, // Un nombre de archivo genérico
+        mimeType: imageBuffer.mimeType, // El tipo de imagen real
+      },
+    };
+
+    // ¡Aquí pasamos el archivo a saveMessage!
+    await saveMessage(userPayload);
+
+    // 4. Lógica condicional (Pausa)
+    if (isHumanOverride) {
+      console.log(`IA pausada para ${phone}. No se responde a la imagen.`);
+      return;
+    }
 
     // 2. Guardar la imagen en el disco
     const fileName = "imagen_recibida.jpg";
-    // path.join(process.cwd()) la guarda en la carpeta raíz de tu proyecto
-    const savePath = path.join(process.cwd(), fileName);
 
-    fs.writeFileSync(savePath, imageBuffer); // ¡Aquí se guarda el archivo!
-
-    console.log(`[PRUEBA LOCAL] Imagen guardada en: ${savePath}`);
-
-    // 3. Avisar al usuario por WhatsApp
     await sendWhatsAppMessage(
       phone,
       `[PRUEBA] ¡Recibí tu imagen! La guardé en mi servidor local como '${fileName}'.`
