@@ -4,11 +4,12 @@ import {
   sendWhatsAppMessage,
 } from "../service/meta.client.js";
 import {
-  getConversationStatus,
+  getConversationData,
   saveMessage,
 } from "../service/localApi.client.js";
 import { type ApiPayload } from "./message.types.js";
 import {
+  classifyImage,
   generateFreeResponse,
   generateImageResponse,
 } from "../service/gemini.client.js";
@@ -25,7 +26,7 @@ export async function processIncomingMessage(
 
     // 1. Primero, verificamos el estado de la IA
     // isHumanOverride = true significa que la IA está PAUSADA
-    const isHumanOverride = await getConversationStatus(phone);
+    const data = await getConversationData(phone);
 
     // 2. Guardamos el mensaje del usuario SIEMPRE
     const userPayload: ApiPayload = {
@@ -37,7 +38,7 @@ export async function processIncomingMessage(
     await saveMessage(userPayload);
 
     // 3. Lógica condicional
-    if (isHumanOverride) {
+    if (data.human_override) {
       // --- IA PAUSADA (humano al control) ---
       console.log(
         `IA pausada para ${phone} (human_override=true). No se responde. \n---------------`
@@ -79,7 +80,7 @@ export async function processImageMessage(
 
   try {
     // 1. Verificamos el estado de la IA (Lógica de Pausa)
-    const isHumanOverride = await getConversationStatus(phone);
+    const data = await getConversationData(phone);
 
     // 2. Descargar la imagen de Meta
     const downloadUrl = await getMediaDownloadUrl(imageId);
@@ -116,7 +117,7 @@ export async function processImageMessage(
     await saveMessage(userPayload);
 
     // 4. Lógica condicional (Pausa)
-    if (isHumanOverride) {
+    if (data.human_override) {
       console.log(`IA pausada para ${phone}. No se responde a la imagen.`);
       return;
     }
@@ -127,29 +128,89 @@ export async function processImageMessage(
     // Node.js usa 'Buffer' para esto.
     const imageBase64 = Buffer.from(imageBuffer.data).toString("base64");
 
-    // 5b. Definir el prompt
-    // Si el usuario no escribió un caption, mandamos uno genérico.
-    const prompt = content || "Describe esta imagen.";
-
     // 5c. Generar la respuesta de la IA (¡usando la nueva función!)
-    const botResponse = await generateImageResponse(
-      prompt,
+    const imageCategory = await classifyImage(
       imageBase64,
       imageBuffer.mimeType
     );
+    console.log(`Categoría de imagen detectada: ${imageCategory}`);
 
-    // 5d. Enviar la respuesta de la IA al usuario
-    await sendWhatsAppMessage(phone, botResponse);
+    switch (imageCategory) {
+      case "COMPROBANTE":
+        console.log(`La imagen de ${phone} es un comprobante.`);
 
-    // 5e. Guardar la respuesta de la IA
-    const aiPayload: ApiPayload = {
-      senderType: "ai",
-      phone: phone,
-      name: "Bot IA",
-      content: botResponse,
-    };
-    await saveMessage(aiPayload);
-    console.log("-----------------------------");
+        const botResponse =
+          "Hemos recibido tu comprobante, Un ejecutivo lo verificará a la brevedad.";
+        await sendWhatsAppMessage(phone, botResponse);
+        // 5e. Guardar la respuesta de la IA
+        const aiPayload: ApiPayload = {
+          senderType: "ai",
+          phone: phone,
+          name: "Bot IA",
+          content: botResponse,
+        };
+        await saveMessage(aiPayload);
+        console.log("-----------------------------");
+
+        break;
+
+      case "PROPIEDAD":
+        console.log(`La imagen de ${phone} es una propiedad`);
+        const Response =
+          "Recibí tu foto de la propiedad. ¿Qué necesitas saber o reportar sobre esta imagen, por favor?";
+
+        if (!content) {
+          // --- Caso: Foto de propiedad SIN caption ---
+          console.log("Caso: PROPIEDAD sin caption.");
+          await sendWhatsAppMessage(phone, Response);
+
+          const aiPayload: ApiPayload = {
+            senderType: "ai",
+            phone: phone,
+            name: "Bot IA",
+            content: Response,
+          };
+          await saveMessage(aiPayload);
+          console.log("-----------------------------");
+          break;
+        } else {
+          // --- Caso: Foto de propiedad CON caption ---
+          console.log(`Caso: PROPIEDAD con caption: "${content}"`);
+
+          // Aquí le pasamos el caption y la imagen a la IA
+          const botResponse = await generateImageResponse(
+            content, // El caption del usuario es el prompt
+            imageBase64,
+            imageBuffer.mimeType
+          );
+
+          await sendWhatsAppMessage(phone, botResponse);
+          const aiPayload: ApiPayload = {
+            senderType: "ai",
+            phone: phone,
+            name: "Bot IA",
+            content: Response,
+          };
+          await saveMessage(aiPayload);
+          console.log("-----------------------------");
+        }
+        break;
+
+      case "OTRO":
+      default:
+        console.log("Acción: Categoría OTRA. Respondiendo genéricamente.");
+        const otherResponse =
+          "Recibí tu imagen, pero no estoy seguro de qué hacer con ella. ¿Puedes darme más contexto?";
+        await sendWhatsAppMessage(phone, otherResponse);
+        const Payload: ApiPayload = {
+          senderType: "ai",
+          phone: phone,
+          name: "Bot IA",
+          content: otherResponse,
+        };
+        await saveMessage(Payload);
+        console.log("-----------------------------");
+    }
   } catch (error) {
     console.error(`Error al procesar la imagen ${imageId}:`, error);
   }
@@ -165,7 +226,7 @@ export async function processAudioMessage(
   try {
     //ACA VA LA LOGICA PARA DESCARGAR EL AUDIO Y MANDARSELO A SUPABASE, HAY QUE VER SI MANDARSELO COMO AUDIO O TEXTO
     // 1. Verificamos el estado de la IA (Lógica de Pausa)
-    const isHumanOverride = await getConversationStatus(phone);
+    const data = await getConversationData(phone);
 
     // 2. Descargar el audio de Meta
     const downloadUrl = await getMediaDownloadUrl(audioId);
@@ -201,7 +262,7 @@ export async function processAudioMessage(
     // ¡Aquí pasamos el archivo a saveMessage!
     await saveMessage(userPayload);
     // 4. Lógica condicional (Pausa)
-    if (isHumanOverride) {
+    if (data.human_override) {
       console.log(`IA pausada para ${phone}. No se responde a la imagen.`);
       return;
     }
@@ -221,7 +282,7 @@ export async function processVideoMessage(
   try {
     //ACA VA LA LOGICA PARA DESCARGAR EL AUDIO Y MANDARSELO A SUPABASE, HAY QUE VER SI MANDARSELO COMO AUDIO O TEXTO
     // 1. Verificamos el estado de la IA (Lógica de Pausa)
-    const isHumanOverride = await getConversationStatus(phone);
+    const data = await getConversationData(phone);
 
     // 2. Descargar el video de Meta
     const downloadUrl = await getMediaDownloadUrl(videoId);
@@ -257,7 +318,7 @@ export async function processVideoMessage(
     // ¡Aquí pasamos el archivo a saveMessage!
     await saveMessage(userPayload);
     // 4. Lógica condicional (Pausa)
-    if (isHumanOverride) {
+    if (data.human_override) {
       console.log(`IA pausada para ${phone}. No se responde a la imagen.`);
       return;
     }
