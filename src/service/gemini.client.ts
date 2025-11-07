@@ -167,3 +167,42 @@ export async function generateImageResponse(
     return "Lo siento, no pude procesar esa imagen en este momento.";
   }
 }
+
+export async function classifyImage(imageBase64: string, mimeType: string) {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+  });
+
+  const prompt = `
+    Analiza la siguiente imagen en el contexto de una empresa de limpieza de propiedades.
+    Responde ÚNICAMENTE con una de las siguientes tres categorías:
+
+    - "COMPROBANTE": Si la imagen es un recibo, factura, transferencia bancaria o comprobante de pago.
+    - "PROPIEDAD": Si la imagen es del interior o exterior de una casa/apartamento. Esto incluye habitaciones, cocinas, baños, muebles, electrodomésticos, o un problema específico (ej. una mancha, algo roto).
+    - "OTRO": Para cualquier otra cosa (selfies, paisajes, memes, logos, etc.).
+
+    Tu respuesta debe ser solo una de esas palabras.
+  `;
+
+  // 1. Preparamos el "payload" de la imagen
+  const imagePart = {
+    inlineData: {
+      data: imageBase64,
+      mimeType: mimeType,
+    },
+  };
+
+  try {
+    // 2. Enviamos el 'prompt' (texto) y la 'imagePart' (imagen) juntos
+    // El orden es importante: primero el texto, luego la imagen.
+    const result = await model.generateContent([prompt, imagePart]);
+    const response = await result.response;
+
+    // Limpiamos la respuesta para asegurarnos (ej: "COMPROBANTE\n" -> "COMPROBANTE")
+    return response.text().trim().toUpperCase();
+  } catch (error) {
+    console.error("Error al clasificar la imagen:", error);
+    // Si la IA falla, es más seguro clasificarlo como "OTRO"
+    return "OTRO";
+  }
+}

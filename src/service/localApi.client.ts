@@ -5,6 +5,11 @@ import { type ApiPayload } from "../message/message.types.js";
 const BASE_URL = config.localApiEndpoint;
 const localApiToken = config.tokenSupabase;
 
+interface ConversationStatus {
+  id: string | null;
+  human_override: boolean;
+}
+
 /**
  * (NUEVA FUNCIÓN 1)
  * Obtiene el estado de la conversación para saber si la IA está pausada.
@@ -12,10 +17,12 @@ const localApiToken = config.tokenSupabase;
  * @param phone El número de teléfono.
  * @returns `true` si un humano está en control (IA pausada), `false` si la IA está activa.
  */
-export async function getConversationStatus(phone: string): Promise<boolean> {
+export async function getConversationData(
+  phone: string
+): Promise<ConversationStatus> {
   if (!BASE_URL) {
     console.error("Error: LOCAL_API_ENDPOINT no está definido");
-    return false; // Falla segura: asume que la IA está activa
+    return { id: null, human_override: false };
   }
 
   const url = `${BASE_URL}/conversations/${phone}`;
@@ -30,27 +37,30 @@ export async function getConversationStatus(phone: string): Promise<boolean> {
         console.log(
           `Conversación nueva para ${phone}. IA activada por defecto.`
         );
-        return false; // human_override es false
       }
       // Otro error
       console.error(
         `Error ${response.status} al obtener estado de IA. Asumiendo IA activa.`
       );
-      return false; // Falla segura
+      return { id: null, human_override: false };
     }
 
     const result = (await response.json()) as {
-      data: { human_override: boolean };
+      success: boolean;
+      data: {
+        id: string;
+        human_override: boolean;
+      };
+    }; // Devolvemos el valor del interruptor
+    return {
+      id: result.data.id,
+      human_override: result.data.human_override,
     };
-
-    // Devolvemos el valor del interruptor
-    return result.data.human_override;
   } catch (error) {
     console.error("Excepción al conectar con API (getStatus):", error);
-    return false; // Falla segura: asume IA activa
+    return { id: null, human_override: false };
   }
 }
-
 /**
  * (NUEVA FUNCIÓN 2)
  * Simplemente guarda un mensaje en la base de datos.
