@@ -3,6 +3,7 @@ import { type ApiPayload } from "../message/message.types.js";
 
 // Renombra la importación para evitar la colisión con el FormData nativo
 const BASE_URL = config.localApiEndpoint;
+const localApiToken = config.tokenSupabase;
 
 /**
  * (NUEVA FUNCIÓN 1)
@@ -88,6 +89,10 @@ export async function saveMessage(payload: ApiPayload): Promise<void> {
 
   try {
     const response = await fetch(url, {
+      //headers: {
+      // Aquí agregas la autorización
+      /*'Authorization': `Bearer ${localApiToken}`
+  },*/
       method: "POST",
       body: formData,
       // ¡IMPORTANTE! No pongas 'Content-Type' aquí.
