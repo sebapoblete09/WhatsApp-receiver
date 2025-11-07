@@ -22,6 +22,7 @@ export const config = {
   // Supabase
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
+  tokenSupabase: process.env.TOKEN_SUPABASE,
 };
 
 // Validación: Nos aseguramos de que las variables críticas existan al iniciar
