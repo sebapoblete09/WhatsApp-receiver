@@ -15,9 +15,6 @@ export const config = {
   // (MODIFICADO) Vertex AI / GCP
   // (Borramos 'geminiApiKey')
   geminiApiKey: process.env.GEMINI_API_KEY,
-  gcpProjectId: process.env.GCP_PROJECT_ID,
-  gcpLocation: process.env.GCP_LOCATION,
-  gcpDataStoreId: process.env.DATA_STORE_ID,
 
   // Supabase
   supabaseUrl: process.env.SUPABASE_URL,
@@ -44,12 +41,4 @@ if (!config.supabaseUrl) {
 }
 if (!config.supabaseServiceKey) {
   throw new Error("SUPABASE_SERVICE_KEY no está definido en .env");
-}
-
-// (MODIFICADO) Validación de GCP
-if (!config.gcpProjectId) {
-  throw new Error("GCP_PROJECT_ID no está definido en .env");
-}
-if (!config.gcpLocation) {
-  throw new Error("GCP_LOCATION no está definido en .env");
 }
