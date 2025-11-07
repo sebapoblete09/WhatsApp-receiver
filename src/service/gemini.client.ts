@@ -129,3 +129,41 @@ ${prompt}`;
     return "Tuve un problema al procesar tu solicitud. Intenta de nuevo. ⚙️";
   }
 }
+
+/**
+ * Genera una respuesta de IA basada en un prompt de texto Y una imagen.
+ * @param {string} prompt - El texto que acompaña a la imagen (ej: "¿Qué es esto?")
+ * @param {string} imageBase64 - La imagen codificada como string en base64
+ * @param {string} mimeType - El tipo MIME de la imagen (ej: "image/jpeg")
+ * @returns {Promise<string>} - La respuesta de texto de la IA
+ */
+
+export async function generateImageResponse(
+  prompt: string,
+  imageBase64: string,
+  mimeType: string
+) {
+  try {
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash-latest",
+    });
+
+    // 1. Preparamos el "payload" de la imagen
+    const imagePart = {
+      inlineData: {
+        data: imageBase64,
+        mimeType: mimeType,
+      },
+    };
+
+    // 2. Enviamos el 'prompt' (texto) y la 'imagePart' (imagen) juntos
+    // El orden es importante: primero el texto, luego la imagen.
+    const result = await model.generateContent([prompt, imagePart]);
+    const response = await result.response;
+
+    return response.text();
+  } catch (error) {
+    console.error("Error al generar respuesta con imagen:", error);
+    return "Lo siento, no pude procesar esa imagen en este momento.";
+  }
+}

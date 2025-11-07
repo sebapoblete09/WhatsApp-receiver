@@ -8,7 +8,10 @@ import {
   saveMessage,
 } from "../service/localApi.client.js";
 import { type ApiPayload } from "./message.types.js";
-import { generateFreeResponse } from "../service/gemini.client.js";
+import {
+  generateFreeResponse,
+  generateImageResponse,
+} from "../service/gemini.client.js";
 //---- (FUNCION 1: MENSAJE COMO TEXTO) ------ //
 //----- Procesa un mensaje de texto entrante de WhatsApp. ----//
 
@@ -117,6 +120,36 @@ export async function processImageMessage(
       console.log(`IA pausada para ${phone}. No se responde a la imagen.`);
       return;
     }
+
+    // --- 5. ¡AQUÍ ESTÁ LA NUEVA LÓGICA! ---
+    console.log(`IA activa para ${phone}. Analizando imagen...`);
+    // 5a. Convertir el ArrayBuffer a base64
+    // Node.js usa 'Buffer' para esto.
+    const imageBase64 = Buffer.from(imageBuffer.data).toString("base64");
+
+    // 5b. Definir el prompt
+    // Si el usuario no escribió un caption, mandamos uno genérico.
+    const prompt = content || "Describe esta imagen.";
+
+    // 5c. Generar la respuesta de la IA (¡usando la nueva función!)
+    const botResponse = await generateImageResponse(
+      prompt,
+      imageBase64,
+      imageBuffer.mimeType
+    );
+
+    // 5d. Enviar la respuesta de la IA al usuario
+    await sendWhatsAppMessage(phone, botResponse);
+
+    // 5e. Guardar la respuesta de la IA
+    const aiPayload: ApiPayload = {
+      senderType: "ai",
+      phone: phone,
+      name: "Bot IA",
+      content: botResponse,
+    };
+    await saveMessage(aiPayload);
+    console.log("-----------------------------");
   } catch (error) {
     console.error(`Error al procesar la imagen ${imageId}:`, error);
   }
