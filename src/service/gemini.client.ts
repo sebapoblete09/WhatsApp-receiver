@@ -76,8 +76,8 @@ export async function generateFreeResponse(prompt: string): Promise<string> {
       "match_google_documents",
       {
         query_embedding: questionVector, // El vector de la pregunta
-        match_threshold: 0.5, // Nivel de similitud (puedes ajustarlo)
-        match_count: 3, // Traer los 3 mejores trozos
+        match_threshold: 0.2, // Nivel de similitud (puedes ajustarlo)
+        match_count: 2, // Traer los 3 mejores trozos
       }
     );
 
@@ -145,7 +145,7 @@ export async function generateImageResponse(
 ) {
   try {
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-latest",
+      model: "gemini-1.5-flash",
     });
 
     // 1. Preparamos el "payload" de la imagen
