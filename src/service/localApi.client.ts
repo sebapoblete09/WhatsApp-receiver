@@ -141,6 +141,9 @@ export async function sendAlert(payload: sendPayload): Promise<void> {
 
   try {
     const response = await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+      },
       method: "POST",
       body: JSON.stringify(payload),
     });
