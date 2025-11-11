@@ -6,8 +6,9 @@ import {
 import {
   getConversationData,
   saveMessage,
+  sendAlert,
 } from "../service/localApi.client.js";
-import { type ApiPayload } from "./message.types.js";
+import { type ApiPayload, type sendPayload } from "./message.types.js";
 import {
   classifyImage,
   generateFreeResponse,
@@ -150,6 +151,15 @@ export async function processImageMessage(
           content: botResponse,
         };
         await saveMessage(aiPayload);
+
+        const sendPayload: sendPayload = {
+          conversationId: data.id || "",
+          needsHuman: true,
+          reason: imageCategory,
+        };
+
+        const res = await sendAlert(sendPayload);
+        console.log("Alerta enviada: ", res);
         console.log("-----------------------------");
 
         break;

@@ -9,6 +9,11 @@ export interface ApiPayload {
   file?: { data: ArrayBuffer; filename: string; mimeType: string };
 }
 
+export interface sendPayload {
+  conversationId: string;
+  needsHuman: boolean;
+  reason: string;
+}
 // Tipado básico del Webhook de Meta
 export interface WhatsAppWebhookBody {
   object: string;

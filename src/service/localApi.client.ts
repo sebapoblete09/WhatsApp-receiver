@@ -1,5 +1,5 @@
 import { config } from "../config.js";
-import { type ApiPayload } from "../message/message.types.js";
+import { type ApiPayload, type sendPayload } from "../message/message.types.js";
 
 // Renombra la importación para evitar la colisión con el FormData nativo
 const BASE_URL = config.localApiEndpoint;
@@ -123,5 +123,34 @@ export async function saveMessage(payload: ApiPayload): Promise<void> {
     }
   } catch (error) {
     console.error("Excepción al conectar con API (saveMessage):", error);
+  }
+}
+
+export async function sendAlert(payload: sendPayload): Promise<void> {
+  if (!BASE_URL) {
+    console.error("Error: LOCAL_API_ENDPOINT no está definido");
+    return;
+  }
+
+  const url = `${BASE_URL}/assistances`;
+  console.log(`Enviando alerta (FormData) en: ${url}`);
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(
+        "Error al guardar mensaje (FormData) en API local:",
+        errorData
+      );
+    } else {
+      console.log(`Alerta (FormData) guarardada exitosamente.`);
+    }
+  } catch (e) {
+    console.error("Excepción al conectar con API (saveMessage):", e);
   }
 }
