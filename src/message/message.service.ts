@@ -153,7 +153,7 @@ export async function processImageMessage(
         await saveMessage(aiPayload);
 
         const sendPayload: sendPayload = {
-          conversationId: data.id || "",
+          conversationId: "9d6da4e4-eb8c-418f-961a-56e2b193bebd",
           needsHuman: true,
           reason: imageCategory,
         };
