@@ -52,6 +52,10 @@ export async function getConversationData(
         human_override: boolean;
       };
     }; // Devolvemos el valor del interruptor
+
+    console.log("DATOS DE GET CONVERSATION");
+    console.log(result.data.id);
+    console.log(result.data.human_override);
     return {
       id: result.data.id,
       human_override: result.data.human_override,
