@@ -135,6 +135,7 @@ export async function processImageMessage(
       imageBuffer.mimeType
     );
     console.log(`Categoría de imagen detectada: ${imageCategory}`);
+    console.log(data.id);
 
     switch (imageCategory) {
       case "COMPROBANTE":
