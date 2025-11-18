@@ -97,7 +97,9 @@ En base al ultimo documento enviado, de la personificación, se debe trbajar en 
 
 2. Si no hay una plantilla que responda a a la pregunta, ahi recien ingresa la ia con el prompt, que seria como responder, en base al archivo en el rag
 
-3. tmb se deben volver a sacar los token y api keys que corresponden
+3. tambien se deben volver a sacar los token y api keys que corresponden
+
+4. En resumen, la ia solo responde cuando desde el back, la pregunta no tiene relacion en base a alguno de los pasos
 
 ## 🔐 Variables de Entorno
 
