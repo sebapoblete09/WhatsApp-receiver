@@ -28,6 +28,7 @@
     "@google-cloud/vertexai": "^1.10.0",
     "@google/genai": "^1.29.0",
     "@google/generative-ai": "^0.24.1",
+    "@nestjs/config": "^4.0.2",
     "@supabase/supabase-js": "^2.80.0",
     "axios": "^1.13.2",
     "dotenv": "^17.2.3",

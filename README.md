@@ -5,24 +5,25 @@ Este proyecto es un backend que actúa como intermediario para la API de WhatsAp
 ## 🚀 Propósito del Proyecto
 
 El objetivo principal es automatizar la atención al cliente o la respuesta a consultas comunes a través de WhatsApp. El sistema puede:
-* Recibir y validar mensajes del webhook de Meta.
-* Detectar el tipo de mensaje (texto, imagen, etc.).
-* Para mensajes de texto, generar una respuesta inteligente usando un modelo RAG (Retrieval-Augmented Generation) con Google Gemini.
-* Para las imagenes y videos, dependiendo del tipo de esta (Comprobante, Propiedades, otros), tiene diferentes caminos para responder, o avisar a un ejecutivo
-* La base de conocimiento del RAG se alimenta desde Supabase, la cual es actualizada a través de un pipeline en n8n.
-* Enviar respuestas de vuelta al usuario a través de la API de Meta.
-* Tanto los mensajes de entrada como de salida se guardan en Supabase.
+
+- Recibir y validar mensajes del webhook de Meta.
+- Detectar el tipo de mensaje (texto, imagen, etc.).
+- Para mensajes de texto, generar una respuesta inteligente usando un modelo RAG (Retrieval-Augmented Generation) con Google Gemini.
+- Para las imagenes y videos, dependiendo del tipo de esta (Comprobante, Propiedades, otros), tiene diferentes caminos para responder, o avisar a un ejecutivo
+- La base de conocimiento del RAG se alimenta desde Supabase, la cual es actualizada a través de un pipeline en n8n.
+- Enviar respuestas de vuelta al usuario a través de la API de Meta.
+- Tanto los mensajes de entrada como de salida se guardan en Supabase.
 
 ## 🛠️ Stack Tecnológico
 
-* **Lenguaje:** TypeScript
-* **Plataforma:** Node.js
-* **Framework:** Express.js
-* **API Principal:** WhatsApp Business API (Meta)
-* **Servicio de IA:** Google Gemini
-* **Base de Conocimiento (RAG):** Supabase
-* **Pipeline de Datos:** n8n (Para poblar Supabase)
-* **Deployment:** Render (Solo en modo desarollo, no produccion final)
+- **Lenguaje:** TypeScript
+- **Plataforma:** Node.js
+- **Framework:** Express.js
+- **API Principal:** WhatsApp Business API (Meta)
+- **Servicio de IA:** Google Gemini
+- **Base de Conocimiento (RAG):** Supabase
+- **Pipeline de Datos:** n8n (Para poblar Supabase)
+- **Deployment:** Render (Solo en modo desarollo, no produccion final)
 
 ## 📁 Arquitectura y Flujo de Datos
 
@@ -30,17 +31,17 @@ El proyecto está modularizado para separar responsabilidades, facilitando su ma
 
 ### Estructura de Carpetas Clave
 
-* `src/index.ts`: Punto de entrada de la aplicación. Inicializa y configura el servidor.
-* `src/app.ts`: Configuración principal de la aplicación (middlewares, rutas).
-* `src/config.ts`: Carga y gestiona las variables de entorno.
-* **`src/message/`**: Módulo principal de lógica de negocio.
-    * `message.controller.ts`: Maneja las peticiones HTTP del webhook, valida y llama al servicio.
-    * `message.service.ts`: Orquesta la lógica. Decide si un mensaje debe ser respondido por IA, cómo procesar una imagen, etc.
-    * `message.types.ts`: Define las interfaces y tipos de TypeScript para los mensajes.
-* **`src/service/`**: Clientes externos.
-    * `meta.client.ts`: Cliente para comunicarse con la API de Meta (enviar mensajes).
-    * `gemini.client.ts`: Cliente para conectarse con la API de Google Gemini y generar respuestas.
-    * `localApi.client.ts`: Cliente para conectarse al back que gestiona el CRUD de los mensajes, alertas, etc.
+- `src/index.ts`: Punto de entrada de la aplicación. Inicializa y configura el servidor.
+- `src/app.ts`: Configuración principal de la aplicación (middlewares, rutas).
+- `src/config.ts`: Carga y gestiona las variables de entorno.
+- **`src/message/`**: Módulo principal de lógica de negocio.
+  - `message.controller.ts`: Maneja las peticiones HTTP del webhook, valida y llama al servicio.
+  - `message.service.ts`: Orquesta la lógica. Decide si un mensaje debe ser respondido por IA, cómo procesar una imagen, etc.
+  - `message.types.ts`: Define las interfaces y tipos de TypeScript para los mensajes.
+- **`src/service/`**: Clientes externos.
+  - `meta.client.ts`: Cliente para comunicarse con la API de Meta (enviar mensajes).
+  - `gemini.client.ts`: Cliente para conectarse con la API de Google Gemini y generar respuestas.
+  - `localApi.client.ts`: Cliente para conectarse al back que gestiona el CRUD de los mensajes, alertas, etc.
 
 ### Flujo de IA (RAG)
 
@@ -58,25 +59,27 @@ Sigue estos pasos para ejecutar el proyecto en un entorno de desarrollo.
 
 ### Prerrequisitos
 
-* Node.js (v18.0 o superior)
-* `npm` o `yarn`
-* Acceso a las API Keys de Meta, Google Gemini y Supabase.
+- Node.js (v18.0 o superior)
+- `npm` o `yarn`
+- Acceso a las API Keys de Meta, Google Gemini y Supabase.
 
 ### Pasos de Instalación
 
 1.  **Clonar el repositorio:**
+
     ```bash
     git clone [URL_DEL_REPO]
     cd WhatsApp-Receiver
     ```
 
 2.  **Instalar dependencias:**
+
     ```bash
     npm install
     ```
 
 3.  **Configurar Variables de Entorno:**
-    Crea un archivo `.env` en la raíz del proyecto. 
+    Crea un archivo `.env` en la raíz del proyecto.
     Copia y pega la estructura de abajo en tu nuevo archivo `.env` y rellena los valores.
 
 4.  **Ejecutar en modo desarrollo:**
@@ -85,6 +88,16 @@ Sigue estos pasos para ejecutar el proyecto en un entorno de desarrollo.
     npm run dev
     ```
 
+## Proximos Pasos
+
+En base al ultimo documento enviado, de la personificación, se debe trbajar en lo siguiente en el back.
+
+1. Agregar logica para los diferentes pasos establecidos, estas respuestas no deben ser con ia, sino con plantilla de mensajes
+   hay que encargarse de hacer la logica para que detecte el paso en el que va, a travez de palabras claves.
+
+2. Si no hay una plantilla que responda a a la pregunta, ahi recien ingresa la ia con el prompt, que seria como responder, en base al archivo en el rag
+
+3. tmb se deben volver a sacar los token y api keys que corresponden
 
 ## 🔐 Variables de Entorno
 
@@ -109,3 +122,7 @@ SUPABASE_SERVICE_KEY= [La llave 'anon' pública de Supabase]
 
 # Credenciales de la API Local
 LOCAL_API_ENDPOINT=[Tu URL del back que contiene lo relacionado a Supabase, para los get, post, etc de los mensajes, alertas, etc]
+
+
+##Que se debe ser de aca en adelante
+```
