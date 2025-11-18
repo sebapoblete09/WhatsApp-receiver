@@ -125,6 +125,4 @@ SUPABASE_SERVICE_KEY= [La llave 'anon' pública de Supabase]
 # Credenciales de la API Local
 LOCAL_API_ENDPOINT=[Tu URL del back que contiene lo relacionado a Supabase, para los get, post, etc de los mensajes, alertas, etc]
 
-
-##Que se debe ser de aca en adelante
 ```
